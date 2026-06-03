@@ -1,0 +1,234 @@
+╔════════════════════════════════════════════════════════════════════════════╗
+║       T-Beam LoRa 433 MHz Triangulation System - QUICK REFERENCE           ║
+╚════════════════════════════════════════════════════════════════════════════╝
+
+🎯 QUICK START (5 Minutes)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. INSTALL LIBRARIES
+   Arduino IDE → Manage Libraries → Install:
+   □ RadioLib, TinyGPS++, U8g2, ArduinoJson
+   □ AsyncTCP, ESPAsyncWebServer
+
+2. PREPARE SD CARD
+   □ Format micro-SD as FAT32
+   □ Copy index.html to root
+   □ Insert into T-Beam
+
+3. UPLOAD FIRMWARE
+   □ Select Board: ESP32 Dev Module
+   □ Upload T-Beam_LoRa_Triangulation.ino
+
+4. CONFIGURE WiFi
+   □ Power on T-Beam
+   □ Connect to "T-Beam-Setup" (pwd: 12345678)
+   □ Visit 192.168.4.1
+   □ Select network & enter password
+
+5. ACCESS DASHBOARD
+   □ Find T-Beam IP (Serial Monitor or Screen 6)
+   □ Open browser: http://192.168.X.X
+   □ Monitor real-time data
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📋 SYSTEM COMPONENTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+HARDWARE:  T-Beam ESP32 + LoRa 433MHz + GPS + OLED + Button + WiFi + SD Card
+FIRMWARE:  T-Beam_LoRa_Triangulation.ino (23 KB, 6 screens)
+DISPLAY:   1.3" SH1106 OLED (6 interactive screens, button navigation)
+WEB:       index.html (dashboard + map + chart)
+ANALYSIS:  lora_triangulation.py + calibrate_rssi.py
+LOGS:      SD card CSV + serial JSON stream
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📱 OLED SCREENS (Press button to cycle)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+[1/6] GPS STATUS      Lat/Lon, Altitude, Satellites, Fix Status
+[2/6] LAST SIGNAL     Signal ID, RSSI, SNR, Receiver Location
+[3/6] STATISTICS      Signal Count, Avg/Min/Max RSSI
+[4/6] BATTERY         Voltage, %, SD Card, GPS Status
+[5/6] TRIANGULATION   Readiness Check (3+ readings required)
+[6/6] WIFI STATUS     Connected/AP Mode, IP, Signal Strength
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🌐 WEB DASHBOARD
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+URL:   http://192.168.X.X (T-Beam IP)
+FEATURES:
+  • Real-time status (2-second updates)
+  • Interactive map with receiver locations
+  • Signal strength RSSI chart
+  • Battery voltage & system health
+  • GPS position tracking
+  • CSV download button
+
+API ENDPOINTS:
+  GET /api/status      → Current system state
+  GET /api/stats       → Signal statistics
+  GET /api/download-csv → Download data
+  POST /connect        → WiFi setup
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🔧 PINS & CONNECTIONS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+LoRa (SPI):
+  MOSI: GPIO 27    RST: GPIO 14
+  MISO: GPIO 19    IRQ: GPIO 26
+  SCK: GPIO 5      CS: GPIO 18
+
+GPS (UART1):
+  RX: GPIO 34      TX: GPIO 12
+
+OLED (I2C):
+  SDA: GPIO 21     SCL: GPIO 22
+  Power: 3.3V      GND
+
+Button:
+  GPIO 38 → GND (momentary)
+
+SD Card (SPI):
+  CS: GPIO 13 (shared SPI bus)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📍 FIELD PROCEDURE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Power on T-Beam (wait 1-2 min for GPS fix)
+2. Open web dashboard on phone/laptop
+3. Walk around transmitter in circular pattern
+4. At 5-10 positions: transmit signal once
+5. Watch dashboard: signal count increases
+6. Download CSV from web interface
+7. Run: python3 lora_triangulation.py --csv data.csv
+8. View results: triangulation_result.png
+
+ACCURACY: ±20-100m depending on:
+  • RSSI calibration (most important)
+  • Number of readings (5-10+)
+  • Receiver geometry (circular > collinear)
+  • Environment (open > urban > indoor)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+⚙️ CONFIGURATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+WiFi Setup Portal:
+  SSID: T-Beam-Setup
+  PASSWORD: 12345678
+  IP: 192.168.4.1 (when active)
+
+RSSI Calibration (in firmware):
+  const float REFERENCE_RSSI = -70;  // dBm @ 1m
+  const float PATH_LOSS_EXPONENT = 2.5;  // 2.0-4.0
+
+LoRa Configuration (in firmware):
+  FREQUENCY: 433000000 Hz (433 MHz)
+  BANDWIDTH: 125000 Hz
+  SPREADING_FACTOR: 9
+  CODING_RATE: 7 (4/7)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🐛 COMMON ISSUES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Display blank?
+  → Check I2C pins (21=SDA, 22=SCL)
+  → Verify U8g2 library installed
+  → Check power connections
+
+Button not working?
+  → Watch Serial for "[SCREEN] Changed" messages
+  → Verify GPIO 38 connects to ground
+
+GPS won't fix?
+  → Move outdoors, away from buildings
+  → Wait 2+ minutes for convergence
+  → Check antenna connected
+
+No LoRa signals?
+  → Verify transmitter is 433 MHz
+  → Check antenna is connected
+  → Check transmitter in range (1-10 km)
+
+Web dashboard won't load?
+  → Verify WiFi connected (Screen 6)
+  → Find correct IP address (Serial or Screen 6)
+  → Check index.html on SD card
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📁 FILES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+T-Beam_LoRa_Triangulation.ino .... Firmware (upload to T-Beam)
+index.html ........................ Web dashboard (copy to SD card)
+lora_triangulation.py ............. Triangulation analysis
+calibrate_rssi.py ................. RSSI calibration wizard
+config.py ......................... Configuration constants
+requirements.txt .................. Python dependencies
+
+DOCUMENTATION:
+README.md .......................... Quick start
+INSTALLATION_CHECKLIST.md ......... Setup steps
+WIFI_GUIDE.md ...................... WiFi & web server
+DISPLAY_GUIDE.md ................... OLED screens
+TRIANGULATION_GUIDE.md ............ Technical details
+SYSTEM_COMPLETE.md ................ Full system overview
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📞 SERIAL COMMANDS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Monitor at 115200 baud to see:
+  [SETUP] Messages during boot
+  [WIFI]  WiFi connection status
+  [RX]    Received LoRa signals
+  [SCREEN] Button press events
+  [ERROR] Any issues
+
+JSON stream example:
+  {"type":"signal","timestamp":123456,"signalID":"ABCD","rssi":-85,"snr":9.5}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ VERIFICATION CHECKLIST
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+□ Firmware compiles without errors
+□ OLED display lights up on power
+□ Button cycles through 6 screens
+□ GPS shows fix after 1-2 minutes
+□ WiFi connects to network (or starts AP)
+□ Web dashboard loads in browser
+□ Map displays and allows zoom/pan
+□ LoRa receives signals from transmitter
+□ CSV data saves to SD card
+□ Python analysis runs and shows results
+
+If all ✓ → System is ready for deployment!
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📚 DOCUMENTATION
+See individual .md files for detailed information:
+  README.md - Start here!
+  WIFI_GUIDE.md - Web server details
+  DISPLAY_GUIDE.md - OLED screen reference
+  TRIANGULATION_GUIDE.md - Algorithm & accuracy
+  SYSTEM_COMPLETE.md - Full technical overview
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🎉 HAPPY TRIANGULATING! 📡
