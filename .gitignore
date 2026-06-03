@@ -3,5 +3,6 @@
 *.pyc
 __pycache__/
 .venv/
+.pio/
 .idea/
 *.bin
